@@ -1,0 +1,63 @@
+name: CI - Auditoría y Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt pytest
+
+      - name: Ejecutar pruebas
+        run: pytest -v
+
+  bandit:
+    name: Bandit (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Bandit
+        run: pip install bandit
+
+      - name: Ejecutar Bandit
+        run: bandit -r . -x ./.venv -f screen
+
+  trivy:
+    name: Trivy (escaneo de imagen)
+    runs-on: ubuntu-latest
+    needs: [test, bandit]
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Construir imagen Docker
+        run: docker build -t ejercicio-docker-audit-dayana:ci .
+
+      - name: Escanear imagen con Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: "ejercicio-docker-audit-dayana:ci"
+          format: "table"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
