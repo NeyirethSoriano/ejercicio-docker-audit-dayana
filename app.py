@@ -24,7 +24,7 @@ def get_usuario():
         "id": usuario_id
     })
 
-    
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({"status": "ok"})
@@ -40,4 +40,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 5050))
     debug_mode = os.getenv("FLASK_ENV") == "development"
     # Escuchar en 0.0.0.0 para exponer el puerto fuera del contenedor de Docker
-    app.run(host="0.0.0.0", port=port, debug=debug_mode)
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)  # nosec B104
